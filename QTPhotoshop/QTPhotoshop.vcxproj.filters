@@ -43,9 +43,17 @@
     <ClCompile Include="MyDropWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="displayIMG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mydropwidget.h">
+    <QtMoc Include="mydropwidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="displayIMG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

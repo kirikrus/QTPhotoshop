@@ -1,5 +1,5 @@
 #include <QtWidgets/QMainWindow>
-#include "ui_QTPhotoshop.h"
+#include "displayIMG.h"
 
 class QTPhotoshop : public QMainWindow{
     Q_OBJECT
@@ -9,4 +9,7 @@ public:
     ~QTPhotoshop();
 
     Ui::QTPhotoshopClass ui;
+
+private slots:
+    void update();
 };
