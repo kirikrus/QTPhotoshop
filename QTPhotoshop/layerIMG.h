@@ -1,4 +1,5 @@
 #include <qimage.h>
+#include <QPainter>
 
 enum blendingMode {
 	Normal,
@@ -11,10 +12,14 @@ enum blendingMode {
 };
 
 struct layerIMG{
-	QImage img;
+	QImage img, img_save;
 	int offsetX, offsetY,
-	 mode = Normal;
+		mode = Normal,
+		alpha;
 
 	layerIMG(QImage);
+
+	void convertToARGB();
+	void setAlpha();
 };
 

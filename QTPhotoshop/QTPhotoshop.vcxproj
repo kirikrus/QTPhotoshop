@@ -19,7 +19,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6F7004EC-5D9D-4293-997C-EF860CD77EB5}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
-    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0.22000.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.22000.0</WindowsTargetPlatformVersion>
     <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
@@ -37,7 +37,7 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
-    <QtInstall>6.6.0_msvc2019_64</QtInstall>
+    <QtInstall>6.2.4_msvc2019_64</QtInstall>
     <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
@@ -94,6 +94,7 @@
     <QtMoc Include="QTPhotoshop.h" />
     <ClCompile Include="clickedPanel.cpp" />
     <ClCompile Include="displayIMG.cpp" />
+    <ClCompile Include="IMGMagic.cpp" />
     <ClCompile Include="layerIMG.cpp" />
     <ClCompile Include="MyDropWidget.cpp" />
     <ClCompile Include="QTPhotoshop.cpp" />
@@ -103,8 +104,10 @@
     <QtMoc Include="mydropwidget.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="style.h" />
     <QtMoc Include="clickedpanel.h" />
     <ClInclude Include="displayIMG.h" />
+    <ClInclude Include="IMGmagic.h" />
     <ClInclude Include="layerIMG.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

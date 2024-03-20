@@ -9,17 +9,32 @@ void layChange(Ui::QTPhotoshopClass* ui, int index, bool up) {//меняем п�
     display(ui);
 }
 
+void style(Ui::QTPhotoshopClass* ui) {
+    ui->photo_zone->setStyleSheet(PURPLE_SCROLL);
+    ui->scalerInc->setStyleSheet(PURPLE_BUTTON);
+    ui->scalerDec->setStyleSheet(PURPLE_BUTTON);
+    ui->scrollArea->setStyleSheet(PURPLE_SCROLL);
+    ui->settingsArea->setStyleSheet(PURPLEE_LINE);
+}
+
 void display(Ui::QTPhotoshopClass* ui){
+
+    style(ui);
+
     QLayoutItem* item;
     while ((item = ui->verticalLayout->takeAt(0)) != nullptr) {//чистим панель от старых виджеты 
         delete item->widget();
         delete item;
     }
 
-    QGraphicsScene* scene = new QGraphicsScene(ui->frame_2);
+    if(ui->photo_zone->scene())
+        delete ui->photo_zone->scene();
+    
+    QGraphicsScene* scene = new QGraphicsScene(ui->photo_zone);
     for (int i{ 0 };i < ui->frame_2->layer.size();i++) {
         QGraphicsPixmapItem* pixmapItem = new QGraphicsPixmapItem(QPixmap::fromImage(ui->frame_2->layer[i].img));
         pixmapItem->setZValue(i);
+        pixmapItem->setOffset(ui->frame_2->layer[i].offsetX, ui->frame_2->layer[i].offsetY);
         scene->addItem(pixmapItem);
 
         QWidget* miniPanelIMG;
@@ -34,7 +49,6 @@ void display(Ui::QTPhotoshopClass* ui){
         miniPanelIMG = new QWidget(ui->scrollAreaWidgetContents);
         miniPanelIMG->setMinimumSize(QSize(0, 100));
         miniPanelIMG->setMaximumSize(QSize(16777215, 100));
-        miniPanelIMG->setStyleSheet(QString::fromUtf8("background-color: rgb(136, 136, 136);"));
         miniPanelIMG->installEventFilter(new clickedPanel(ui, i, miniPanelIMG));//тут ивенты панелек
         gridLayout = new QGridLayout(miniPanelIMG);
         gridLayout->setSpacing(6);
@@ -75,6 +89,7 @@ void display(Ui::QTPhotoshopClass* ui){
     }
 
     ui->photo_zone->setScene(scene);
+    ui->frame_2->setStyleSheet("background-color: rgba(255, 255, 255, 0);");
 }
 
 void scale(Ui::QTPhotoshopClass* ui, float inc) {//скейл фото зоны
@@ -85,6 +100,8 @@ void scale(Ui::QTPhotoshopClass* ui, float inc) {//скейл фото зоны
 
 void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка панельки с начтройками индивидуально для каждого слоя
     
+    delete ui->scrollAreaWidgetContents_2;
+
     QLineEdit* offsetY;
     QLineEdit* offsetX;
     QLabel* label_2;
@@ -97,22 +114,37 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
     QLabel* label_6;
     QLabel* label_7;
     QLineEdit* alpha;
+    QWidget* scrollAreaWidgetContents_2;
 
-#pragma region отрисовка панели настройки
+#define propConnect(elem) QObject::connect(elem, &QLineEdit::textChanged, [=]() { \
+    editIMGProp(ui, index, elem->text().toInt(), #elem);\
+    });
 
-    offsetY = new QLineEdit(ui->scrollAreaWidgetContents_2);
+#pragma region отрисовка панели настройки 💀💀💀
+
+    scrollAreaWidgetContents_2 = new QWidget();
+    scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
+    scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 189, 579));
+    offsetY = new QLineEdit(scrollAreaWidgetContents_2);
     offsetY->setGeometry(QRect(110, 40, 41, 21));
     offsetY->setInputMethodHints(Qt::ImhDigitsOnly);
-    offsetX = new QLineEdit(ui->scrollAreaWidgetContents_2);
+    offsetY->setText(QString::number(ui->frame_2->layer[index].offsetY));
+    propConnect(offsetY);
+
+    offsetX = new QLineEdit(scrollAreaWidgetContents_2);
     offsetX->setGeometry(QRect(40, 40, 41, 21));
     offsetX->setInputMethodHints(Qt::ImhDigitsOnly);
-    label_2 = new QLabel(ui->scrollAreaWidgetContents_2);
+    offsetX->setText(QString::number(ui->frame_2->layer[index].offsetX));
+    propConnect(offsetX);
+
+    label_2 = new QLabel(scrollAreaWidgetContents_2);
     label_2->setGeometry(QRect(40, 20, 40, 16));
     label_2->setAlignment(Qt::AlignCenter);
-    label_3 = new QLabel(ui->scrollAreaWidgetContents_2);
+    label_3 = new QLabel(scrollAreaWidgetContents_2);
     label_3->setGeometry(QRect(110, 20, 40, 16));
     label_3->setAlignment(Qt::AlignCenter);
-    modes = new QComboBox(ui->scrollAreaWidgetContents_2);
+
+    modes = new QComboBox(scrollAreaWidgetContents_2);
     modes->addItem(QString("Нормальное"));
     modes->addItem(QString("Затухание"));
     modes->addItem(QString("Затемнение"));
@@ -121,28 +153,45 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
     modes->addItem(QString("Вычитание"));
     modes->addItem(QString("Разделение"));
     modes->setGeometry(QRect(40, 160, 111, 22));
-    label_4 = new QLabel(ui->scrollAreaWidgetContents_2);
+    modes->setCurrentIndex(ui->frame_2->layer[index].mode);
+    modes->setStyleSheet(PURPLE_LIST);
+
+    label_4 = new QLabel(scrollAreaWidgetContents_2);
     label_4->setGeometry(QRect(30, 80, 60, 16));
     label_4->setAlignment(Qt::AlignCenter);
-    height = new QLineEdit(ui->scrollAreaWidgetContents_2);
+
+    height = new QLineEdit(scrollAreaWidgetContents_2);
     height->setGeometry(QRect(110, 100, 41, 21));
     height->setInputMethodHints(Qt::ImhDigitsOnly);
-    label_5 = new QLabel(ui->scrollAreaWidgetContents_2);
+    height->setText(QString::number(ui->frame_2->layer[index].img.height()));
+    propConnect(height);
+
+    label_5 = new QLabel(scrollAreaWidgetContents_2);
     label_5->setGeometry(QRect(100, 80, 60, 16));
     label_5->setAlignment(Qt::AlignCenter);
-    width = new QLineEdit(ui->scrollAreaWidgetContents_2);
+
+    width = new QLineEdit(scrollAreaWidgetContents_2);
     width->setGeometry(QRect(40, 100, 41, 21));
     width->setInputMethodHints(Qt::ImhDigitsOnly);
-    label_6 = new QLabel(ui->scrollAreaWidgetContents_2);
+    width->setText(QString::number(ui->frame_2->layer[index].img.width()));
+    propConnect(width);
+
+    label_6 = new QLabel(scrollAreaWidgetContents_2);
     label_6->setGeometry(QRect(40, 140, 110, 16));
     label_6->setAlignment(Qt::AlignCenter);
-    label_7 = new QLabel(ui->scrollAreaWidgetContents_2);
+
+    label_7 = new QLabel(scrollAreaWidgetContents_2);
     label_7->setGeometry(QRect(40, 200, 110, 16));
     label_7->setAlignment(Qt::AlignCenter);
-    alpha = new QLineEdit(ui->scrollAreaWidgetContents_2);
+
+    alpha = new QLineEdit(scrollAreaWidgetContents_2);
     alpha->setGeometry(QRect(70, 220, 50, 21));
     alpha->setInputMethodHints(Qt::ImhDigitsOnly);
-    ui->settingsArea->setWidget(ui->scrollAreaWidgetContents_2);
+    alpha->setText(QString::number(ui->frame_2->layer[index].alpha));
+    propConnect(alpha);
+
+    ui->settingsArea->setWidget(scrollAreaWidgetContents_2);
+    ui->scrollAreaWidgetContents_2 = scrollAreaWidgetContents_2;
 
 #pragma region скример НЕ ОТКРЫВАТЬ
     label_2->setText(QCoreApplication::translate("QTPhotoshopClass", "offsetX", nullptr));
@@ -159,7 +208,7 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
     label_4->setText(QCoreApplication::translate("QTPhotoshopClass", "\320\250\320\270\321\200\320\270\320\275\320\260", nullptr));
     label_5->setText(QCoreApplication::translate("QTPhotoshopClass", "\320\222\321\213\321\201\320\276\321\202\320\260", nullptr));
     label_6->setText(QCoreApplication::translate("QTPhotoshopClass", "\320\240\320\265\320\266\320\270\320\274 \320\275\320\260\320\273\320\276\320\266\320\265\320\275\320\270\321\217", nullptr));
-    label_7->setText(QCoreApplication::translate("QTPhotoshopClass", "\320\237\321\200\320\276\320\267\321\200\320\260\321\207\320\275\320\276\321\201\321\202\321\214", nullptr));
+    label_7->setText(QCoreApplication::translate("QTPhotoshopClass", "\320\237\321\200\320\276\320\267\321\200\320\260\321\207\320\275\320\276\321\201\321\202\321\214 %", nullptr));
 #pragma endregion
 
 
