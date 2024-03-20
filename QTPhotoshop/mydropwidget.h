@@ -1,3 +1,4 @@
+#include "layerIMG.h"
 #include <QFrame>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -14,7 +15,7 @@ private:
     QGraphicsScene m_scene;
 
 public:
-    QVector<QImage> img;
+    QVector<layerIMG> layer;
 
     MYDropWidget(QWidget* parent = nullptr);
     void displayImages();

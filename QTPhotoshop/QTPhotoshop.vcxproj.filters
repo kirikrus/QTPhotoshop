@@ -46,14 +46,26 @@
     <ClCompile Include="displayIMG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="layerIMG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="clickedPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mydropwidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="clickedpanel.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="displayIMG.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="layerIMG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

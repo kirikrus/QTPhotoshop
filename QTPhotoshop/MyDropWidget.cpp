@@ -26,7 +26,7 @@ void MYDropWidget::dropEvent(QDropEvent* event) {
     if (mimeData->hasUrls()) {
         QList<QUrl> urlList = mimeData->urls();
         for (const QUrl& url : urlList)
-            this->img.push_back(QImage(url.toLocalFile()));
+            this->layer.push_back(layerIMG(QImage(url.toLocalFile())));
         event->acceptProposedAction();
         displayImages();
     }
