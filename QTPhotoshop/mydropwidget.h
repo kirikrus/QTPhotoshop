@@ -5,6 +5,8 @@
 #include <QMimeData>
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
+#include <QFileInfo>
+#include <QMessageBox>
 
 class MYDropWidget : public QFrame {
     Q_OBJECT

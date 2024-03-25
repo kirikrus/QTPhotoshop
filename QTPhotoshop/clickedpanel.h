@@ -14,7 +14,10 @@ protected:
     bool eventFilter(QObject* obj, QEvent* event) {
         if (event->type() == QEvent::Enter) parent->setStyleSheet("background-color: rgb(136, 136, 136);");
         if (event->type() == QEvent::Leave) parent->setStyleSheet("");
-        if (event->type() == QEvent::MouseButtonPress) displayProp(ui, index);
+        if (event->type() == QEvent::MouseButtonPress) {
+            ui->scrollAreaWidgetContents_2->show();
+            displayProp(ui, index);
+        }
         return 0;
     }
 

@@ -1,12 +1,15 @@
 ﻿#include "displayIMG.h"
 #include <QObject>
-
+#include <QLineEdit>
+#include <qcombobox.h>
 //тут мозг отрисовки панелек
 
 void layChange(Ui::QTPhotoshopClass* ui, int index, bool up) {//меняем порядок массива слоев
-    if (!up && index < ui->frame_2->layer.size() - 1) qSwap(ui->frame_2->layer[index], ui->frame_2->layer[index + 1]);
-    if (up && index > 0) qSwap(ui->frame_2->layer[index], ui->frame_2->layer[index - 1]);
-    display(ui);
+    if (!up && index < ui->frame_2->layer.size() - 1)
+        qSwap(ui->frame_2->layer[index], ui->frame_2->layer[index + 1]);
+    if (up && index > 0)
+        qSwap(ui->frame_2->layer[index], ui->frame_2->layer[index - 1]);
+    mode(ui);
 }
 
 void style(Ui::QTPhotoshopClass* ui) {
@@ -30,6 +33,8 @@ void display(Ui::QTPhotoshopClass* ui){
     if(ui->photo_zone->scene())
         delete ui->photo_zone->scene();
     
+    ui->svgLoad->hide();
+
     QGraphicsScene* scene = new QGraphicsScene(ui->photo_zone);
     for (int i{ 0 };i < ui->frame_2->layer.size();i++) {
         QGraphicsPixmapItem* pixmapItem = new QGraphicsPixmapItem(QPixmap::fromImage(ui->frame_2->layer[i].img));
@@ -59,6 +64,7 @@ void display(Ui::QTPhotoshopClass* ui){
         layDown->setText("▼");
         QObject::connect(layDown, &QPushButton::clicked, [=]() {//фу, лямбда
             layChange(ui, i, 0);
+            display(ui);
             });
         gridLayout->addWidget(layDown, 1, 2, 1, 1);
         layUp = new QPushButton(miniPanelIMG);
@@ -67,6 +73,7 @@ void display(Ui::QTPhotoshopClass* ui){
         layUp->setText("▲");
         QObject::connect(layUp, &QPushButton::clicked, [=]() {//  \(0 Д  0)/
             layChange(ui, i, 1);
+            display(ui);
             });
         gridLayout->addWidget(layUp, 1, 1, 1, 1);
         label = new QLabel(miniPanelIMG);
@@ -115,6 +122,9 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
     QLabel* label_7;
     QLineEdit* alpha;
     QWidget* scrollAreaWidgetContents_2;
+    QPushButton* pushButton;
+    QCustomPlot* histo;
+    QGraphicsView* curve;
 
 #define propConnect(elem) QObject::connect(elem, &QLineEdit::textChanged, [=]() { \
     editIMGProp(ui, index, elem->text().toInt(), #elem);\
@@ -125,6 +135,11 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
     scrollAreaWidgetContents_2 = new QWidget();
     scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
     scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 189, 579));
+
+    histo = new QCustomPlot(scrollAreaWidgetContents_2);
+    histo->setGeometry(QRect(10, 450, 181, 80));
+    histo_build(&ui->frame_2->layer[index].img, histo);//гистограмма
+
     offsetY = new QLineEdit(scrollAreaWidgetContents_2);
     offsetY->setGeometry(QRect(110, 40, 41, 21));
     offsetY->setInputMethodHints(Qt::ImhDigitsOnly);
@@ -146,15 +161,23 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
 
     modes = new QComboBox(scrollAreaWidgetContents_2);
     modes->addItem(QString("Нормальное"));
-    modes->addItem(QString("Затухание"));
     modes->addItem(QString("Затемнение"));
     modes->addItem(QString("Умножение"));
     modes->addItem(QString("Исключение"));
     modes->addItem(QString("Вычитание"));
     modes->addItem(QString("Разделение"));
+    modes->addItem(QString("Экран"));
+    modes->addItem(QString("Инверсия"));
+    modes->addItem(QString("Дополнение"));
     modes->setGeometry(QRect(40, 160, 111, 22));
     modes->setCurrentIndex(ui->frame_2->layer[index].mode);
     modes->setStyleSheet(PURPLE_LIST);
+    QObject::connect(modes, QOverload<int>::of(&QComboBox::activated), [=]() {//  \(0 Д  0)/
+        ui->frame_2->layer[index].mode = modes->currentIndex();
+        mode(ui);
+        histo_build(&ui->frame_2->layer[index].img, histo);
+        display(ui);
+        });
 
     label_4 = new QLabel(scrollAreaWidgetContents_2);
     label_4->setGeometry(QRect(30, 80, 60, 16));
@@ -190,19 +213,42 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
     alpha->setText(QString::number(ui->frame_2->layer[index].alpha));
     propConnect(alpha);
 
+    pushButton = new QPushButton(scrollAreaWidgetContents_2);
+    pushButton->setObjectName(QString::fromUtf8("pushButton"));
+    pushButton->setGeometry(QRect(50, 540, 90, 30));
+    QFont font;
+    font.setBold(true);
+    pushButton->setFont(font);
+    pushButton->setText("Удалить слой");
+    pushButton->setStyleSheet(QString::fromUtf8("border-radius: 10px;""background: rgb(255, 85, 127);"));
+    QObject::connect(pushButton, &QPushButton::clicked, [=]() {
+        ui->frame_2->layer.erase(ui->frame_2->layer.begin() + index);
+        if (index == 0) ui->scrollAreaWidgetContents_2->hide();
+        mode(ui);
+        display(ui);
+        });
+
+    curve = new QGraphicsView(scrollAreaWidgetContents_2);
+    curve->setGeometry(QRect(10, 270, 181, 181));
+    curve->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    curve->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    curve->setTransform(QTransform::fromScale(1, -1));
+    CurveItem* curveItem = new CurveItem(&ui->frame_2->layer[index].controlPoints);
+    QGraphicsScene* scene = new QGraphicsScene(curve);
+    scene->addItem(curveItem);
+    curve->setScene(scene);
+    QObject::connect(curveItem, &CurveItem::curveChanged, [=]() {
+        applyContrastCurve(ui, index);
+        histo_build(&ui->frame_2->layer[index].img,histo);
+        display(ui);
+        });
+
     ui->settingsArea->setWidget(scrollAreaWidgetContents_2);
     ui->scrollAreaWidgetContents_2 = scrollAreaWidgetContents_2;
 
 #pragma region скример НЕ ОТКРЫВАТЬ
     label_2->setText(QCoreApplication::translate("QTPhotoshopClass", "offsetX", nullptr));
     label_3->setText(QCoreApplication::translate("QTPhotoshopClass", "offsetY", nullptr));
-    modes->setItemText(0, QCoreApplication::translate("QTPhotoshopClass", "\320\235\320\276\321\200\320\274\320\260\320\273\321\214\320\275\320\276\320\265", nullptr));
-    modes->setItemText(1, QCoreApplication::translate("QTPhotoshopClass", "\320\227\320\260\321\202\321\203\321\205\320\260\320\275\320\270\320\265", nullptr));
-    modes->setItemText(2, QCoreApplication::translate("QTPhotoshopClass", "\320\227\320\260\321\202\320\265\320\274\320\275\320\265\320\275\320\270\320\265", nullptr));
-    modes->setItemText(3, QCoreApplication::translate("QTPhotoshopClass", "\320\243\320\274\320\275\320\276\320\266\320\265\320\275\320\270\320\265", nullptr));
-    modes->setItemText(4, QCoreApplication::translate("QTPhotoshopClass", "\320\230\321\201\320\272\320\273\321\216\321\207\320\265\320\275\320\270\320\265", nullptr));
-    modes->setItemText(5, QCoreApplication::translate("QTPhotoshopClass", "\320\222\321\213\321\207\320\270\321\202\320\260\320\275\320\270\320\265", nullptr));
-    modes->setItemText(6, QCoreApplication::translate("QTPhotoshopClass", "\320\240\320\260\320\267\320\264\320\265\320\273\320\265\320\275\320\270\320\265", nullptr));
 
     modes->setPlaceholderText(QCoreApplication::translate("QTPhotoshopClass", "\320\235\320\276\321\200\320\274\320\260\320\273\321\214\320\275\320\276\320\265", nullptr));
     label_4->setText(QCoreApplication::translate("QTPhotoshopClass", "\320\250\320\270\321\200\320\270\320\275\320\260", nullptr));

@@ -55,12 +55,24 @@
     <ClCompile Include="IMGMagic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\QT\6.6.0\msvc2019_64\include\qcustomplot-source\qcustomplot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Curve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mydropwidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="clickedpanel.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="..\..\..\QT\6.6.0\msvc2019_64\include\qcustomplot.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="curve.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

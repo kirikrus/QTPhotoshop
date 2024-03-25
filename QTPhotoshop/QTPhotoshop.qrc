@@ -1,4 +1,5 @@
 <RCC>
-    <qresource prefix="QTPhotoshop">
+    <qresource prefix="/QTPhotoshop">
+        <file>C:/Users/kiril/Downloads/ph--image-thin.svg</file>
     </qresource>
 </RCC>
