@@ -18,5 +18,6 @@ void QTPhotoshop::update() {
         }
         else{
             display(&ui);
+            displayProp(&ui, ui.frame_2->layer.size()-1);
         }
 }

@@ -1,22 +1,19 @@
 #include "IMGmagic.h"
 #include "displayIMG.h"
 
-void mode(Ui::QTPhotoshopClass*, int);
+void mode(Ui::QTPhotoshopClass*);
 
 void editIMGProp(Ui::QTPhotoshopClass* ui, int index, int value, QString senderName) {
     if (senderName == "offsetX") ui->frame_2->layer[index].offsetX = value;
     else if (senderName == "offsetY") ui->frame_2->layer[index].offsetY = value;
     if (senderName == "height") {
         ui->frame_2->layer[index].h = value;
-        ui->frame_2->layer[index].img = ui->frame_2->layer[index].img_save.scaled(ui->frame_2->layer[index].w, value);
     }
     else if (senderName == "width") {
         ui->frame_2->layer[index].w = value;
-        ui->frame_2->layer[index].img = ui->frame_2->layer[index].img_save.scaled(value, ui->frame_2->layer[index].h);
     }
-    else if (senderName == "alpha") {//опнакелю, йюйюъ уг, мн опнакелю
+    else if (senderName == "alpha") {
         ui->frame_2->layer[index].alpha = value;
-        ui->frame_2->layer[index].setAlpha();
     }
     mode(ui);
     display(ui);
@@ -53,13 +50,18 @@ struct RGBA {
 
 void mode(Ui::QTPhotoshopClass* ui) {
     for (int index{ 0 }; index <= ui->frame_2->layer.size() - 1; index++) {
-        ui->frame_2->layer[index].img = ui->frame_2->layer[index].img_save;
-        ui->frame_2->layer[index].img = ui->frame_2->layer[index].img_save.scaled(ui->frame_2->layer[index].w, ui->frame_2->layer[index].h);
+        QImage img_copy = ui->frame_2->layer[index].img_save.copy();
+        ui->frame_2->layer[index].img = img_copy.scaled(ui->frame_2->layer[index].w, ui->frame_2->layer[index].h);
+
         ui->frame_2->layer[index].setAlpha();
 
         if (ui->frame_2->layer[index].mode == Normal || index == 0) {
             if (ui->frame_2->layer[index].mode != Normal)
                 ui->frame_2->layer[index].mode = Normal;
+            ui->frame_2->layer[index].img = ui->frame_2->layer[index].img_save.scaled(ui->frame_2->layer[index].w, ui->frame_2->layer[index].h).copy();
+            ui->frame_2->layer[index].img_mix_save = ui->frame_2->layer[index].img.copy();
+            if(ui->frame_2->layer[index].controlPoints.size() > 2)
+                applyContrastCurve(ui,index);
             continue;
         }
 
@@ -118,6 +120,7 @@ void mode(Ui::QTPhotoshopClass* ui) {
                 }
             }
         }
+        layer_up->img_mix_save = layer_up->img;
     }
 }
 
@@ -183,7 +186,7 @@ void applyContrastCurve(Ui::QTPhotoshopClass* ui, int index) {
 
     for (int y = 0; y < ui->frame_2->layer[index].img.height(); ++y)
         for (int x = 0; x < ui->frame_2->layer[index].img.width(); ++x) {
-            QColor color(ui->frame_2->layer[index].img_save.pixel(x, y));
+            QColor color(ui->frame_2->layer[index].img_mix_save.pixel(x, y));
 
             double originalRed = color.redF();
             double originalGreen = color.greenF();

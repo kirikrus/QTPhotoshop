@@ -15,12 +15,12 @@ enum blendingMode {
 };
 
 struct layerIMG{
-	QImage img, img_save;
+	QImage img, img_save, img_mix_save;
 	int offsetX, offsetY,
 		mode = Normal,
 		alpha,
 		h, w;
-	QVector<QPointF> controlPoints{ QPointF(0.,0.),  QPointF(175.,175.) };
+	QVector<QPointF> controlPoints;
 
 	layerIMG(QImage);
 

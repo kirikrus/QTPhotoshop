@@ -9,7 +9,7 @@ void layChange(Ui::QTPhotoshopClass* ui, int index, bool up) {//меняем п�
         qSwap(ui->frame_2->layer[index], ui->frame_2->layer[index + 1]);
     if (up && index > 0)
         qSwap(ui->frame_2->layer[index], ui->frame_2->layer[index - 1]);
-    mode(ui);
+    displayProp(ui, index);
 }
 
 void style(Ui::QTPhotoshopClass* ui) {
@@ -107,6 +107,8 @@ void scale(Ui::QTPhotoshopClass* ui, float inc) {//скейл фото зоны
 
 void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка панельки с начтройками индивидуально для каждого слоя
     
+    mode(ui);
+
     delete ui->scrollAreaWidgetContents_2;
 
     QLineEdit* offsetY;
@@ -175,6 +177,7 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
     QObject::connect(modes, QOverload<int>::of(&QComboBox::activated), [=]() {//  \(0 Д  0)/
         ui->frame_2->layer[index].mode = modes->currentIndex();
         mode(ui);
+        applyContrastCurve(ui, index);
         histo_build(&ui->frame_2->layer[index].img, histo);
         display(ui);
         });
@@ -242,6 +245,11 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
         histo_build(&ui->frame_2->layer[index].img,histo);
         display(ui);
         });
+
+    if (ui->frame_2->layer[index].img == ui->frame_2->layer[index].img_mix_save && ui->frame_2->layer[index].controlPoints.size() > 2) {
+        applyContrastCurve(ui, index);
+        histo_build(&ui->frame_2->layer[index].img, histo);
+    }
 
     ui->settingsArea->setWidget(scrollAreaWidgetContents_2);
     ui->scrollAreaWidgetContents_2 = scrollAreaWidgetContents_2;
