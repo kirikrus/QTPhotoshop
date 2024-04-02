@@ -4,4 +4,6 @@
 void editIMGProp(Ui::QTPhotoshopClass*, int, int, QString);
 void mode(Ui::QTPhotoshopClass*);
 void histo_build(QImage*,QCustomPlot*);
-void applyContrastCurve(Ui::QTPhotoshopClass* ui, int index);
+void applyContrastCurve(Ui::QTPhotoshopClass*, int);
+void binar(Ui::QTPhotoshopClass*, int, int, int, double, double);
+void setIntegralImage(layerIMG*);

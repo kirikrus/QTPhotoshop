@@ -18,6 +18,21 @@ void style(Ui::QTPhotoshopClass* ui) {
     ui->scalerDec->setStyleSheet(PURPLE_BUTTON);
     ui->scrollArea->setStyleSheet(PURPLE_SCROLL);
     ui->settingsArea->setStyleSheet(PURPLEE_LINE);
+
+    ui->prop1->setStyleSheet(PURPLE_BUTTON);
+    ui->prop2->setStyleSheet(PURPLE_BUTTON);
+    ui->prop3->setStyleSheet(PURPLE_BUTTON);
+    ui->prop4->setStyleSheet(PURPLE_BUTTON);
+
+    ui->binarGavr->setStyleSheet(PURPLE_BUTTON);
+    ui->binarOtsu->setStyleSheet(PURPLE_BUTTON);
+    ui->binarNibl->setStyleSheet(PURPLE_BUTTON);
+    ui->binarSauv->setStyleSheet(PURPLE_BUTTON);
+    ui->binarVulf->setStyleSheet(PURPLE_BUTTON);
+    ui->binarBrad->setStyleSheet(PURPLE_BUTTON);
+
+    ui->sensitivity->setStyleSheet(PURPLEE_LINE);
+    ui->maskSize->setStyleSheet(PURPLEE_LINE);
 }
 
 void display(Ui::QTPhotoshopClass* ui){
@@ -250,6 +265,35 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
         applyContrastCurve(ui, index);
         histo_build(&ui->frame_2->layer[index].img, histo);
     }
+
+    //нижние переключатели вкладок
+    QObject::connect(ui->prop1, &QPushButton::pressed, [=]() {ui->tabWidget->setCurrentIndex(0);});
+    QObject::connect(ui->prop2, &QPushButton::pressed, [=]() {
+        setIntegralImage(&(ui->frame_2->layer[index]));
+        ui->tabWidget->setCurrentIndex(3); });
+    QObject::connect(ui->prop3, &QPushButton::pressed, [=]() {ui->tabWidget->setCurrentIndex(2); });
+    QObject::connect(ui->prop4, &QPushButton::pressed, [=]() {ui->tabWidget->setCurrentIndex(1); });
+
+    //бинарные коннекты
+#define scan_param int mask_size = ui->maskSize->text().toInt();\
+    mask_size = (mask_size <= 0 ? 3 : mask_size);\
+    double sensitivity = ui->sensitivity->text().toDouble();\
+    double a = ui->vulf_a->text().toDouble();
+
+    QObject::connect(ui->binarGavr, &QPushButton::pressed, [=]() {binar(ui,index,0,0,0,0);});
+    QObject::connect(ui->binarOtsu, &QPushButton::pressed, [=]() {binar(ui, index, 1,0,0,0); });
+    QObject::connect(ui->binarNibl, &QPushButton::pressed, [=]() {
+        scan_param
+        binar(ui, index, 2, mask_size, sensitivity,0);});
+    QObject::connect(ui->binarSauv, &QPushButton::pressed, [=]() {
+        scan_param
+        binar(ui, index, 3, mask_size, sensitivity,0);});
+    QObject::connect(ui->binarVulf, &QPushButton::pressed, [=]() {
+        scan_param
+        binar(ui, index, 4, mask_size, sensitivity,a); });
+    QObject::connect(ui->binarBrad, &QPushButton::pressed, [=]() {
+        scan_param
+        binar(ui, index, 5, mask_size, sensitivity,0); });
 
     ui->settingsArea->setWidget(scrollAreaWidgetContents_2);
     ui->scrollAreaWidgetContents_2 = scrollAreaWidgetContents_2;

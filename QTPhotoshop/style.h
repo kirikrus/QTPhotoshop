@@ -22,7 +22,8 @@
 "} "
 
 #define PURPLE_BUTTON "QPushButton{background-color: rgb(55, 55, 55);"\
-"border-radius: 50%;}"\
+"border-radius: 10px;"\
+"border: 1px solid rgb(136, 136, 136); }"\
 "QPushButton:hover { "\
 "    background-color: rgb(136, 136, 136); "\
 "} "\

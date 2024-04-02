@@ -21,6 +21,7 @@ struct layerIMG{
 		alpha,
 		h, w;
 	QVector<QPointF> controlPoints;
+	QVector<QVector<int>> integralImage;
 
 	layerIMG(QImage);
 

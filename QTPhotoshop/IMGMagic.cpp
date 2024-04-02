@@ -30,6 +30,10 @@ struct RGBA {
         mid = (r + g + b) / 3.;
     }
 
+    void to_Grey() {
+        r = g = b = 0.2125 * r + 0.7154 * g + 0.0721 * b;
+    }
+
     void normalize() {
         r /= 255.;
         g /= 255.;
@@ -46,6 +50,7 @@ struct RGBA {
     friend RGBA operator- ( int i, RGBA obj) {return RGBA(i - obj.r, i - obj.g, i - obj.b, obj.a);}
     RGBA operator* (RGBA inp) { return RGBA(r * inp.r, g * inp.g, b * inp.b,a); }
     RGBA operator/ (RGBA inp) { return RGBA(r / inp.r, g / inp.g, b / inp.b, a); }
+    bool operator<= (int inp) { return mid <= inp; }
 };
 
 void mode(Ui::QTPhotoshopClass* ui) {
@@ -128,11 +133,9 @@ void histo_build(QImage* img ,QCustomPlot* histo) {
     QVector<double> brightValues(256, 0);
 
     for (int y = 0; y < img->height(); ++y)
-        for (int x = 0; x < img->width(); ++x) {
-            QColor color(img->pixel(x, y));
-            int mid = (color.red() + color.blue() + color.green()) / 3.;
-            brightValues[mid]++;
-        }
+        for (int x = 0; x < img->width(); ++x)
+            brightValues[(int)(RGBA(img->pixel(x, y)).mid)]++;
+
     int max1{ 0 }, max2{ 0 };
     for (auto& elem : brightValues) max1 = max1 < elem ? elem : max1;
     for (auto& elem : brightValues) max2 = (max2 < elem && elem != max1) ? elem : max2;
@@ -199,4 +202,210 @@ void applyContrastCurve(Ui::QTPhotoshopClass* ui, int index) {
             color.setRgbF(newRed, newGreen, newBlue);
             ui->frame_2->layer[index].img.setPixel(x, y, color.rgb());
         }
+}
+
+void setIntegralImage(layerIMG* layer) {//интегральная матрица
+    int width = layer->img.width();
+    int height = layer->img.height();
+
+    layer->integralImage.resize(height);
+    for (int y = 0; y < height; ++y) {
+        layer->integralImage[y].resize(width);
+        for (int x = 0; x < width; ++x) {
+            int pixelValue = RGBA(layer->img.pixel(x, y)).mid;
+            layer->integralImage[y][x] = pixelValue;
+            if (y > 0) layer->integralImage[y][x] += layer->integralImage[y - 1][x];
+            if (x > 0) layer->integralImage[y][x] += layer->integralImage[y][x - 1];
+            if (y > 0 && x > 0) layer->integralImage[y][x] -= layer->integralImage[y - 1][x - 1];
+        }
+    }
+}
+
+#define min(x) min##x - 1 < 0 ? 0 : 
+
+void binar(Ui::QTPhotoshopClass* ui, int index, int method, int mask_size, double k, double a) {
+    QImage* img = &ui->frame_2->layer[index].img;
+
+    for (int y = 0; y < img->height(); ++y)
+        for (int x = 0; x < img->width(); ++x){
+            RGBA rgb = img->pixel(x, y);
+            rgb.to_Grey();
+            img->setPixel(x, y, qRgb(rgb.r,rgb.g,rgb.b));
+        }
+
+    int threshold{ 0 };
+
+    if (method == 0) {//гавр---------------------------
+        threshold = 0;
+        for (int y = 0; y < img->height(); ++y)
+            for (int x = 0; x < img->width(); ++x)
+                threshold += RGBA(img->pixel(x, y)).mid;
+        threshold /= img->height() * img->width();
+        for (int y = 0; y < img->height(); ++y)
+            for (int x = 0; x < img->width(); ++x)
+                img->setPixel(x, y, RGBA(img->pixel(x, y)) <= threshold ? qRgb(0, 0, 0) : qRgb(255, 255, 255));
+    }
+    else if (method == 1) {//отсу----------------------------------
+        threshold = 0;
+        int nSumPix[256]{ 0 };
+        float nProDis[256]{ 0 };
+        for (int y = 0; y < img->height(); ++y)
+            for (int x = 0; x < img->width(); ++x)
+                nSumPix[(int)(RGBA(img->pixel(x, y)).mid)]++;
+
+        for (int i = 0; i < 256; i++)
+            nProDis[i] = (float)nSumPix[i] / (img->height() * img->width());
+
+        float w0, w1, u0_temp, u1_temp, u0, u1, delta_temp;
+        double delta_max = 0;
+        for (int i = 0; i < 256; i++) {
+            w0 = w1 = u0 = u1 = u0_temp = u1_temp = delta_temp = 0;
+            for (int j = 0; j < 256; j++)
+                if (j <= i) {
+                    w0 += nProDis[j];
+                    u0_temp += j * nProDis[j];
+                }
+                else {
+                    w1 += nProDis[j];
+                    u1_temp += j * nProDis[j];
+                }
+            u0 = u0_temp / w0;
+            u1 = u1_temp / w1;
+            delta_temp = (float)(w0 * w1 * (u0 - u1) * (u0 - u1));
+            if (delta_temp > delta_max) {
+                delta_max = delta_temp;
+                threshold = i;
+            }
+        }
+        for (int y = 0; y < img->height(); ++y)
+            for (int x = 0; x < img->width(); ++x)
+                img->setPixel(x, y, RGBA(img->pixel(x, y)) <= threshold ? qRgb(0, 0, 0) : qRgb(255, 255, 255));
+
+    }
+    else if (method == 2) { //ниблек-------------------------
+        int halfSize = mask_size / 2;
+        int width = img->width();
+        int height = img->height();
+
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x) {
+                int minX = qMax(0, x - halfSize);
+                int minY = qMax(0, y - halfSize);
+                int maxX = qMin(width - 1, x + halfSize);
+                int maxY = qMin(height - 1, y + halfSize);
+                int areaSize = (maxX - minX + 1) * (maxY - minY + 1);
+                int sum = ui->frame_2->layer[index].integralImage[maxY][maxX]
+                    - (min(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
+                    - (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
+                    + (min(X) (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
+                double MX = (double)sum / areaSize;
+                double DX = 0;
+
+                for (int i = minY; i <= maxY; ++i)
+                    for (int j = minX; j <= maxX; ++j) {
+                        int pixelValue = RGBA(img->pixel(j, i)).mid;
+                        DX += pow(pixelValue - MX, 2);
+                    }
+                DX /= areaSize;
+
+                double sigma = sqrt(DX);
+                double threshold = MX + k * sigma;
+                img->setPixel(x, y, RGBA(img->pixel(x, y)) <= threshold ? qRgb(0, 0, 0) : qRgb(255, 255, 255));
+            }
+    }
+    else if (method == 3) {//Саув-------------------------
+        int halfSize = mask_size / 2;
+        int width = img->width();
+        int height = img->height();
+
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x) {
+                int minX = qMax(0, x - halfSize);
+                int minY = qMax(0, y - halfSize);
+                int maxX = qMin(width - 1, x + halfSize);
+                int maxY = qMin(height - 1, y + halfSize);
+                int areaSize = (maxX - minX + 1) * (maxY - minY + 1);
+                int sum = ui->frame_2->layer[index].integralImage[maxY][maxX]
+                    - (min(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
+                    - (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
+                    + (min(X) (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
+                double MX = (double)sum / areaSize;
+                double DX = 0;
+
+                for (int i = minY; i <= maxY; ++i)
+                    for (int j = minX; j <= maxX; ++j) {
+                        auto a = img->pixel(j, i);
+                        int pixelValue = RGBA(img->pixel(j, i)).mid;
+                        DX += pow(pixelValue - MX, 2);
+                    }
+                DX /= areaSize;
+
+                double sigma = sqrt(DX);
+                double threshold = MX*(1+k*(sigma/128. - 1));
+                img->setPixel(x, y, RGBA(img->pixel(x, y)) <= threshold ? qRgb(0, 0, 0) : qRgb(255, 255, 255));
+            }
+    }
+    else if (method == 4) {//Вульф------------------------
+        int halfSize = mask_size / 2;
+        int width = img->width();
+        int height = img->height();
+        int min_pix{ 255 };
+        int max_sigma{ -1 };
+        QVector<QVector<double>> sigma_matrix(height, QVector<double>(width, 0)),
+            MX_matrix(height, QVector<double>(width, 0));
+
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x) {
+                int minX = qMax(0, x - halfSize);
+                int minY = qMax(0, y - halfSize);
+                int maxX = qMin(width - 1, x + halfSize);
+                int maxY = qMin(height - 1, y + halfSize);
+                int areaSize = (maxX - minX + 1) * (maxY - minY + 1);
+                int sum = ui->frame_2->layer[index].integralImage[maxY][maxX]
+                    - (min(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
+                    - (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
+                    + (min(X) (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
+                double MX = (double)sum / areaSize;
+                MX_matrix[y][x] = MX;
+                double DX = 0;
+
+                for (int i = minY; i <= maxY; ++i)
+                    for (int j = minX; j <= maxX; ++j) {
+                        int pixelValue = RGBA(img->pixel(j, i)).mid;
+                        min_pix = (min_pix > pixelValue ? pixelValue : min_pix);
+                        DX += pow(pixelValue - MX, 2);
+                    }
+                DX /= areaSize;
+
+                double sigma = sqrt(DX);
+                sigma_matrix[y][x] = sigma;
+                max_sigma = (max_sigma < sigma ? sigma : max_sigma);
+            }
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x) {
+                double threshold = (1 - a) * MX_matrix[y][x] + a * min_pix + a * sigma_matrix[y][x] / max_sigma * (MX_matrix[y][x] - min_pix);
+                img->setPixel(x, y, RGBA(img->pixel(x, y)) <= threshold ? qRgb(0, 0, 0) : qRgb(255, 255, 255));
+            }
+    }
+    else if (method == 5) {//Рот---------------------------
+        int halfSize = mask_size / 2;
+        int width = img->width();
+        int height = img->height();
+        for (int y = 0; y < height; ++y)
+            for (int x = 0; x < width; ++x) {
+                int minX = qMax(0, x - halfSize);
+                int minY = qMax(0, y - halfSize);
+                int maxX = qMin(width - 1, x + halfSize);
+                int maxY = qMin(height - 1, y + halfSize);
+                int areaSize = (maxX - minX + 1) * (maxY - minY + 1);
+                int sum = ui->frame_2->layer[index].integralImage[maxY][maxX]
+                    - (min(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
+                    - (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
+                    + (min(X) (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
+                bool condition = (RGBA(img->pixel(x, y)) * areaSize <= sum * (1 - k));
+                img->setPixel(x, y, condition ? qRgb(0, 0, 0) : qRgb(255, 255, 255));
+            }
+    }
+
+    display(ui);
 }
