@@ -1,5 +1,6 @@
 #include "IMGmagic.h"
 #include "displayIMG.h"
+#include <execution>
 
 void mode(Ui::QTPhotoshopClass*);
 
@@ -221,16 +222,16 @@ void setIntegralImage(layerIMG* layer) {//интегральная матрица
     }
 }
 
-#define min(x) min##x - 1 < 0 ? 0 : 
+#define border(x) min##x - 1 < 0 ? 0 : 
 
 void binar(Ui::QTPhotoshopClass* ui, int index, int method, int mask_size, double k, double a) {
     QImage* img = &ui->frame_2->layer[index].img;
 
     for (int y = 0; y < img->height(); ++y)
-        for (int x = 0; x < img->width(); ++x){
+        for (int x = 0; x < img->width(); ++x) {
             RGBA rgb = img->pixel(x, y);
             rgb.to_Grey();
-            img->setPixel(x, y, qRgb(rgb.r,rgb.g,rgb.b));
+            img->setPixel(x, y, qRgb(rgb.r, rgb.g, rgb.b));
         }
 
     int threshold{ 0 };
@@ -295,9 +296,9 @@ void binar(Ui::QTPhotoshopClass* ui, int index, int method, int mask_size, doubl
                 int maxY = qMin(height - 1, y + halfSize);
                 int areaSize = (maxX - minX + 1) * (maxY - minY + 1);
                 int sum = ui->frame_2->layer[index].integralImage[maxY][maxX]
-                    - (min(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
-                    - (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
-                    + (min(X) (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
+                    - (border(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
+                    - (border(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
+                    + (border(X) (border(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
                 double MX = (double)sum / areaSize;
                 double DX = 0;
 
@@ -326,9 +327,9 @@ void binar(Ui::QTPhotoshopClass* ui, int index, int method, int mask_size, doubl
                 int maxY = qMin(height - 1, y + halfSize);
                 int areaSize = (maxX - minX + 1) * (maxY - minY + 1);
                 int sum = ui->frame_2->layer[index].integralImage[maxY][maxX]
-                    - (min(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
-                    - (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
-                    + (min(X) (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
+                    - (border(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
+                    - (border(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
+                    + (border(X) (border(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
                 double MX = (double)sum / areaSize;
                 double DX = 0;
 
@@ -341,7 +342,7 @@ void binar(Ui::QTPhotoshopClass* ui, int index, int method, int mask_size, doubl
                 DX /= areaSize;
 
                 double sigma = sqrt(DX);
-                double threshold = MX*(1+k*(sigma/128. - 1));
+                double threshold = MX * (1 + k * (sigma / 128. - 1));
                 img->setPixel(x, y, RGBA(img->pixel(x, y)) <= threshold ? qRgb(0, 0, 0) : qRgb(255, 255, 255));
             }
     }
@@ -362,9 +363,9 @@ void binar(Ui::QTPhotoshopClass* ui, int index, int method, int mask_size, doubl
                 int maxY = qMin(height - 1, y + halfSize);
                 int areaSize = (maxX - minX + 1) * (maxY - minY + 1);
                 int sum = ui->frame_2->layer[index].integralImage[maxY][maxX]
-                    - (min(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
-                    - (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
-                    + (min(X) (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
+                    - (border(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
+                    - (border(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
+                    + (border(X) (border(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
                 double MX = (double)sum / areaSize;
                 MX_matrix[y][x] = MX;
                 double DX = 0;
@@ -399,9 +400,9 @@ void binar(Ui::QTPhotoshopClass* ui, int index, int method, int mask_size, doubl
                 int maxY = qMin(height - 1, y + halfSize);
                 int areaSize = (maxX - minX + 1) * (maxY - minY + 1);
                 int sum = ui->frame_2->layer[index].integralImage[maxY][maxX]
-                    - (min(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
-                    - (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
-                    + (min(X) (min(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
+                    - (border(X) ui->frame_2->layer[index].integralImage[maxY][minX - 1])
+                    - (border(Y) ui->frame_2->layer[index].integralImage[minY - 1][maxX])
+                    + (border(X) (border(Y) ui->frame_2->layer[index].integralImage[minY - 1][minX - 1]));
                 bool condition = (RGBA(img->pixel(x, y)) * areaSize <= sum * (1 - k));
                 img->setPixel(x, y, condition ? qRgb(0, 0, 0) : qRgb(255, 255, 255));
             }
@@ -409,3 +410,38 @@ void binar(Ui::QTPhotoshopClass* ui, int index, int method, int mask_size, doubl
 
     display(ui);
 }
+
+void mask_filter(layerIMG* layer, int mh, int mw) {
+    QByteArray byteArrayCopy(layer->byteImg);
+    uchar* byteArray = reinterpret_cast<uchar*>(layer->byteImg.data());
+
+    int imageWidth = layer->img.width();
+    int imageHeight = layer->img.height();
+
+    for (int i = 0; i < imageHeight * imageWidth; ++i) {
+        int y = i / imageWidth;
+        int x = i % imageWidth;
+
+        int sum_r = 0, sum_g = 0, sum_b = 0;
+            for (int dy = -mh / 2; dy <= mh / 2; ++dy)
+                for (int dx = -mw / 2; dx <= mw / 2; ++dx) {
+                    int nx = (x + dx < 0) ? 0 : ((x + dx >= imageWidth) ? imageWidth - 1 : x + dx);
+                    int ny = (y + dy < 0) ? 0 : ((y + dy >= imageHeight) ? imageHeight - 1 : y + dy);
+                    int pixelIndex = (ny * imageWidth + nx) * 4; // индекс начала пикселя в массиве байтов
+
+                    sum_r += byteArray[pixelIndex];
+                    sum_g += byteArray[pixelIndex + 1];
+                    sum_b += byteArray[pixelIndex + 2];
+                }
+        int average_r = sum_r * (1. / (double)(mh * mw));
+        int average_g = sum_g * (1. / (double)(mh * mw));
+        int average_b = sum_b * (1. / (double)(mh * mw));
+
+        byteArrayCopy[i * 4] = average_r;
+        byteArrayCopy[i * 4 + 1] = average_g;
+        byteArrayCopy[i * 4 + 2] = average_b;
+    }
+
+    layer->byteArrayToImage(byteArrayCopy);
+}
+

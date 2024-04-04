@@ -9,6 +9,12 @@ layerIMG::layerIMG(QImage img)
     img_mix_save = img.copy();
 }
 
+void layerIMG::imageToByteArray() {byteImg = QByteArray::fromRawData((const char*)img.bits(), img.sizeInBytes());}
+void layerIMG::byteArrayToImage(QByteArray byteImg) {
+    const char* data = byteImg.constData();
+    memcpy(img.bits(), data, img.sizeInBytes());
+}
+
 void layerIMG::convertToARGB() {
     img = img.convertToFormat(QImage::Format_ARGB32);
     img_save = img_save.convertToFormat(QImage::Format_ARGB32);

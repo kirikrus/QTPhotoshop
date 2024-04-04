@@ -1,5 +1,6 @@
 #include <qimage.h>
 #include <QPainter>
+#include <qbuffer.h>
 #include "curve.h"
 
 enum blendingMode {
@@ -22,9 +23,12 @@ struct layerIMG{
 		h, w;
 	QVector<QPointF> controlPoints;
 	QVector<QVector<int>> integralImage;
+	QByteArray byteImg;
 
 	layerIMG(QImage);
 
+	void imageToByteArray();
+	void byteArrayToImage(QByteArray);
 	void convertToARGB();
 	void setAlpha();
 };

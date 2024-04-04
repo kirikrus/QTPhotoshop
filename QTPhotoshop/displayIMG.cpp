@@ -33,6 +33,11 @@ void style(Ui::QTPhotoshopClass* ui) {
 
     ui->sensitivity->setStyleSheet(PURPLEE_LINE);
     ui->maskSize->setStyleSheet(PURPLEE_LINE);
+    ui->vulf_a->setStyleSheet(PURPLEE_LINE);
+
+    ui->lineFilter->setStyleSheet(PURPLE_BUTTON);
+    ui->maskSizeM->setStyleSheet(PURPLEE_LINE);
+    ui->maskSizeN->setStyleSheet(PURPLEE_LINE);
 }
 
 void display(Ui::QTPhotoshopClass* ui){
@@ -266,38 +271,53 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
         histo_build(&ui->frame_2->layer[index].img, histo);
     }
 
+
+    ui->settingsArea->setWidget(scrollAreaWidgetContents_2);
+    ui->scrollAreaWidgetContents_2 = scrollAreaWidgetContents_2;
+
     //нижние переключатели вкладок
     QObject::connect(ui->prop1, &QPushButton::pressed, [=]() {ui->tabWidget->setCurrentIndex(0);});
     QObject::connect(ui->prop2, &QPushButton::pressed, [=]() {
         setIntegralImage(&(ui->frame_2->layer[index]));
         ui->tabWidget->setCurrentIndex(3); });
-    QObject::connect(ui->prop3, &QPushButton::pressed, [=]() {ui->tabWidget->setCurrentIndex(2); });
-    QObject::connect(ui->prop4, &QPushButton::pressed, [=]() {ui->tabWidget->setCurrentIndex(1); });
+    QObject::connect(ui->prop3, &QPushButton::pressed, [=]() {
+        ui->frame_2->layer[index].imageToByteArray();
+        ui->tabWidget->setCurrentIndex(1); });
+    QObject::connect(ui->prop4, &QPushButton::pressed, [=]() {ui->tabWidget->setCurrentIndex(2); });
 
     //бинарные коннекты
+    {
 #define scan_param int mask_size = ui->maskSize->text().toInt();\
     mask_size = (mask_size <= 0 ? 3 : mask_size);\
     double sensitivity = ui->sensitivity->text().toDouble();\
     double a = ui->vulf_a->text().toDouble();
 
-    QObject::connect(ui->binarGavr, &QPushButton::pressed, [=]() {binar(ui,index,0,0,0,0);});
-    QObject::connect(ui->binarOtsu, &QPushButton::pressed, [=]() {binar(ui, index, 1,0,0,0); });
-    QObject::connect(ui->binarNibl, &QPushButton::pressed, [=]() {
-        scan_param
-        binar(ui, index, 2, mask_size, sensitivity,0);});
-    QObject::connect(ui->binarSauv, &QPushButton::pressed, [=]() {
-        scan_param
-        binar(ui, index, 3, mask_size, sensitivity,0);});
-    QObject::connect(ui->binarVulf, &QPushButton::pressed, [=]() {
-        scan_param
-        binar(ui, index, 4, mask_size, sensitivity,a); });
-    QObject::connect(ui->binarBrad, &QPushButton::pressed, [=]() {
-        scan_param
-        binar(ui, index, 5, mask_size, sensitivity,0); });
+        QObject::connect(ui->binarGavr, &QPushButton::pressed, [=]() {binar(ui, index, 0, 0, 0, 0); });
+        QObject::connect(ui->binarOtsu, &QPushButton::pressed, [=]() {binar(ui, index, 1, 0, 0, 0); });
+        QObject::connect(ui->binarNibl, &QPushButton::pressed, [=]() {
+            scan_param
+                binar(ui, index, 2, mask_size, sensitivity, 0); });
+        QObject::connect(ui->binarSauv, &QPushButton::pressed, [=]() {
+            scan_param
+                binar(ui, index, 3, mask_size, sensitivity, 0); });
+        QObject::connect(ui->binarVulf, &QPushButton::pressed, [=]() {
+            scan_param
+                binar(ui, index, 4, mask_size, sensitivity, a); });
+        QObject::connect(ui->binarBrad, &QPushButton::pressed, [=]() {
+            scan_param
+                binar(ui, index, 5, mask_size, sensitivity, 0); });
+    }
+    {
+        //прост фильтрац коннекты
+#define scan_param int mask_sizeN = ui->maskSizeN->text().toInt();\
+    int mask_sizeM = ui->maskSizeM->text().toInt();
 
-    ui->settingsArea->setWidget(scrollAreaWidgetContents_2);
-    ui->scrollAreaWidgetContents_2 = scrollAreaWidgetContents_2;
-
+        QObject::connect(ui->lineFilter, &QPushButton::pressed, [=]() {
+            scan_param
+                mask_filter(&(ui->frame_2->layer[index]), mask_sizeN, mask_sizeM);
+            display(ui);
+            });
+    }
 #pragma region скример НЕ ОТКРЫВАТЬ
     label_2->setText(QCoreApplication::translate("QTPhotoshopClass", "offsetX", nullptr));
     label_3->setText(QCoreApplication::translate("QTPhotoshopClass", "offsetY", nullptr));
