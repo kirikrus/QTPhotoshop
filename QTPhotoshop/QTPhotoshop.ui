@@ -752,6 +752,88 @@ background: rgb(136, 136, 136);</string>
        <string>медийная фильтрация</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="GaussCore">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>330</y>
+        <width>151</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-radius: 10px;
+background: rgb(136, 136, 136);</string>
+      </property>
+      <property name="text">
+       <string>расчет ядра Гаусса</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="gaussFilter">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>380</y>
+        <width>151</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-radius: 10px;
+background: rgb(136, 136, 136);</string>
+      </property>
+      <property name="text">
+       <string>размытие по Гауссу</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_11">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>270</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Сигма</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="sigma">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>290</y>
+        <width>41</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhDigitsOnly</set>
+      </property>
+      <property name="text">
+       <string>3</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="placeholderText">
+       <string>3</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="chastFilt">
      <attribute name="title">

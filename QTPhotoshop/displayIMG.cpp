@@ -39,6 +39,9 @@ void style(Ui::QTPhotoshopClass* ui) {
     ui->medianFilter->setStyleSheet(PURPLE_BUTTON);
     ui->maskSizeM->setStyleSheet(PURPLEE_LINE);
     ui->maskSizeN->setStyleSheet(PURPLEE_LINE);
+    ui->GaussCore->setStyleSheet(PURPLE_BUTTON);
+    ui->gaussFilter->setStyleSheet(PURPLE_BUTTON);
+    ui->sigma->setStyleSheet(PURPLEE_LINE);
 }
 
 void display(Ui::QTPhotoshopClass* ui){
@@ -321,6 +324,14 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
         QObject::connect(ui->medianFilter, &QPushButton::pressed, [=]() {
             scan_param
                 median_filter(&(ui->frame_2->layer[index]), mask_sizeN, mask_sizeM);
+            display(ui);
+            });
+        QObject::connect(ui->GaussCore, &QPushButton::pressed, [=]() {
+            ui->frame_2->layer[index].gaussCore = GaussianCore(ui->maskSizeN->text().toInt(),ui->sigma->text().toInt());
+            display(ui);
+            });
+        QObject::connect(ui->gaussFilter, &QPushButton::pressed, [=]() {
+            gaussFilter(&(ui->frame_2->layer[index]));
             display(ui);
             });
     }

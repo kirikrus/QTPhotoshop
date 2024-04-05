@@ -506,3 +506,57 @@ void median_filter(layerIMG* layer, int mh, int mw) {
 
     layer->byteArrayToImage(byteArrayCopy);
 }
+
+QVector<QVector<double>> GaussianCore(int size, double sigma) {
+    QVector<QVector<double>> core(size, QVector<double>(size));
+
+    double sum = 0.;
+    int halfSize = size / 2;
+
+    for (int x = -halfSize; x <= halfSize; ++x)
+        for (int y = -halfSize; y <= halfSize; ++y) {
+            double exponent = -(x * x + y * y) / (2 * sigma * sigma);
+            core[x + halfSize][y + halfSize] = exp(exponent) / (2 * M_PI * sigma * sigma);
+            sum += core[x + halfSize][y + halfSize];
+        }
+
+    for (int i = 0; i < size; ++i)
+        for (int j = 0; j < size; ++j)
+            core[i][j] /= sum;
+
+    return core;
+}
+
+void gaussFilter(layerIMG* layer) {
+    QVector<QVector<double>>& core = layer->gaussCore;
+    QByteArray byteArrayCopy(layer->byteImg);
+    uchar* byteArray = reinterpret_cast<uchar*>(layer->byteImg.data());
+
+    int imageWidth = layer->img.width();
+    int imageHeight = layer->img.height();
+
+    int mh = core.size(), mw = mh;
+
+    for (int i = 0; i < imageHeight * imageWidth; ++i) {
+        int y = i / imageWidth;
+        int x = i % imageWidth;
+
+        int sum_r = 0, sum_g = 0, sum_b = 0;
+        for (int dy = -mh / 2; dy <= mh / 2; ++dy)
+            for (int dx = -mw / 2; dx <= mw / 2; ++dx) {
+                int nx = (x + dx < 0) ? 0 : ((x + dx >= imageWidth) ? imageWidth - 1 : x + dx);
+                int ny = (y + dy < 0) ? 0 : ((y + dy >= imageHeight) ? imageHeight - 1 : y + dy);
+                int pixelIndex = (ny * imageWidth + nx) * 4; // индекс начала пикселя в массиве байтов
+
+                sum_r += byteArray[pixelIndex]     * core[dx + mh / 2][dy + mh / 2];
+                sum_g += byteArray[pixelIndex + 1] * core[dx + mh / 2][dy + mh / 2];
+                sum_b += byteArray[pixelIndex + 2] * core[dx + mh / 2][dy + mh / 2];
+            }
+
+        byteArrayCopy[i * 4] = sum_r;
+        byteArrayCopy[i * 4 + 1] = sum_g;
+        byteArrayCopy[i * 4 + 2] = sum_b;
+    }
+
+    layer->byteArrayToImage(byteArrayCopy);
+}
