@@ -36,6 +36,7 @@ void style(Ui::QTPhotoshopClass* ui) {
     ui->vulf_a->setStyleSheet(PURPLEE_LINE);
 
     ui->lineFilter->setStyleSheet(PURPLE_BUTTON);
+    ui->medianFilter->setStyleSheet(PURPLE_BUTTON);
     ui->maskSizeM->setStyleSheet(PURPLEE_LINE);
     ui->maskSizeN->setStyleSheet(PURPLEE_LINE);
 }
@@ -315,6 +316,11 @@ void displayProp(Ui::QTPhotoshopClass* ui, int index) {//отрисовка па
         QObject::connect(ui->lineFilter, &QPushButton::pressed, [=]() {
             scan_param
                 mask_filter(&(ui->frame_2->layer[index]), mask_sizeN, mask_sizeM);
+            display(ui);
+            });
+        QObject::connect(ui->medianFilter, &QPushButton::pressed, [=]() {
+            scan_param
+                median_filter(&(ui->frame_2->layer[index]), mask_sizeN, mask_sizeM);
             display(ui);
             });
     }

@@ -9,3 +9,4 @@ void applyContrastCurve(Ui::QTPhotoshopClass*, int);
 void binar(Ui::QTPhotoshopClass*, int, int, int, double, double);
 void setIntegralImage(layerIMG*);
 void mask_filter(layerIMG*, int, int);
+void median_filter(layerIMG*, int, int);

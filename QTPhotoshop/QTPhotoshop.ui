@@ -635,8 +635,8 @@ background: rgb(255, 85, 127);</string>
      <widget class="QPushButton" name="lineFilter">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>30</y>
+        <x>30</x>
+        <y>150</y>
         <width>151</width>
         <height>30</height>
        </rect>
@@ -658,7 +658,7 @@ background: rgb(136, 136, 136);</string>
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>110</y>
+        <y>80</y>
         <width>41</width>
         <height>21</height>
        </rect>
@@ -680,7 +680,7 @@ background: rgb(136, 136, 136);</string>
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>80</y>
+        <y>50</y>
         <width>121</width>
         <height>16</height>
        </rect>
@@ -696,7 +696,7 @@ background: rgb(136, 136, 136);</string>
       <property name="geometry">
        <rect>
         <x>120</x>
-        <y>110</y>
+        <y>80</y>
         <width>41</width>
         <height>21</height>
        </rect>
@@ -718,7 +718,7 @@ background: rgb(136, 136, 136);</string>
       <property name="geometry">
        <rect>
         <x>98</x>
-        <y>110</y>
+        <y>80</y>
         <width>10</width>
         <height>21</height>
        </rect>
@@ -728,6 +728,28 @@ background: rgb(136, 136, 136);</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="medianFilter">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>200</y>
+        <width>151</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-radius: 10px;
+background: rgb(136, 136, 136);</string>
+      </property>
+      <property name="text">
+       <string>медийная фильтрация</string>
       </property>
      </widget>
     </widget>

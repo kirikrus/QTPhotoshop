@@ -445,3 +445,64 @@ void mask_filter(layerIMG* layer, int mh, int mw) {
     layer->byteArrayToImage(byteArrayCopy);
 }
 
+int partition(QVector<int>& arr, int left, int right) {
+    int pivot = arr[right];
+    int i = left - 1;
+
+    for (int j = left; j < right; ++j)
+        if (arr[j] <= pivot) {
+            ++i;
+            std::swap(arr[i], arr[j]);
+        }
+
+    std::swap(arr[i + 1], arr[right]);
+    return i + 1;
+}
+
+int quickSelect(QVector<int>& arr, int left, int right, int k) {
+    int pivotIndex = partition(arr, left, right); 
+    int pivotRank = pivotIndex - left + 1; 
+
+    if (k == pivotRank) return arr[pivotIndex];
+    else if (k < pivotRank) return quickSelect(arr, left, pivotIndex - 1, k);
+    else return quickSelect(arr, pivotIndex + 1, right, k - pivotRank);
+}
+
+void median_filter(layerIMG* layer, int mh, int mw) {
+    QByteArray byteArrayCopy(layer->byteImg);
+    uchar* byteArray = reinterpret_cast<uchar*>(layer->byteImg.data());
+
+    int imageWidth = layer->img.width();
+    int imageHeight = layer->img.height();
+
+    for (int i = 0; i < imageHeight * imageWidth; ++i) {
+        int y = i / imageWidth;
+        int x = i % imageWidth;
+
+        QVector<int> sort_maskR(mh * mw);
+        QVector<int> sort_maskG(mh * mw);
+        QVector<int> sort_maskB(mh * mw);
+        int index{ 0 };
+
+        for (int dy = -mh / 2; dy <= mh / 2; ++dy)
+            for (int dx = -mw / 2; dx <= mw / 2; ++dx) {
+                int nx = (x + dx < 0) ? 0 : ((x + dx >= imageWidth) ? imageWidth - 1 : x + dx);
+                int ny = (y + dy < 0) ? 0 : ((y + dy >= imageHeight) ? imageHeight - 1 : y + dy);
+                int pixelIndex = (ny * imageWidth + nx) * 4; // индекс начала пикселя в массиве байтов
+                
+                sort_maskR[index] = byteArray[pixelIndex];
+                sort_maskG[index] = byteArray[pixelIndex + 1];
+                sort_maskB[index] = byteArray[pixelIndex + 2];
+
+                index++;
+            }
+        
+        int index_mid = mh * mw / 2. + 1;
+
+        byteArrayCopy[i * 4] = quickSelect(sort_maskR, 0, sort_maskR.size() - 1, index_mid);
+        byteArrayCopy[i * 4 + 1] = quickSelect(sort_maskG, 0, sort_maskR.size() - 1, index_mid);
+        byteArrayCopy[i * 4 + 2] = quickSelect(sort_maskB, 0, sort_maskR.size() - 1, index_mid);
+    }
+
+    layer->byteArrayToImage(byteArrayCopy);
+}
